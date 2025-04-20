@@ -3,229 +3,104 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Estación Meteorológica - Completo</title>
+  <title>Estación Meteorológica</title>
+
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    body { background-color: #121212; color: #fff; }
-    .nav-link.active { background-color: #343a40 !important; }
-    .table-dark td, .table-dark th { color: #fff; }
-    .sensor-value { font-size: 1.6rem; font-weight: bold; }
-    canvas { background-color: #1a1a1a; padding: 8px; border-radius: 6px; margin-top: 10px; }
-    #last-update { font-size: 0.9rem; color: #aaa; margin-top: 0.5rem; }
+    .lluvia-ligera { color: #5bc0de; }
+    .lluvia-moderada { color: #f0ad4e; }
+    .lluvia-aguacero { color: #d9534f; font-weight: bold; }
   </style>
 </head>
 <body class="bg-dark text-white">
-<div class="container py-4">
-  <h2 class="text-center mb-4">📡 Estación Meteorológica</h2>
-  <ul class="nav nav-tabs" id="mainTabs" role="tablist">
-    <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#resumen">📊 Resumen</a></li>
-    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#temp">🌡 Temperatura</a></li>
-    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#hum">💧 Humedad</a></li>
-    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#soil">🌱 Suelo</a></li>
-    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#light">☀️ Luz</a></li>
-    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#wind">🍃 Viento</a></li>
-    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#rain">🌧 Lluvia</a></li>
-    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#estado">🔌 Estado ESP32</a></li>
-    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#historial">📁 Historial</a></li>
-  </ul>
-
-  <div class="tab-content mt-4">
-    <div class="tab-pane fade show active" id="resumen">
-      <div class="row row-cols-1 row-cols-md-3 g-3 mb-4">
-        <div class="col"><div class="card text-bg-secondary p-3"><h6>🌡 Temperatura</h6><p class="sensor-value" id="val-temp">-- °C</p></div></div>
-        <div class="col"><div class="card text-bg-secondary p-3"><h6>💧 Humedad</h6><p class="sensor-value" id="val-hum">-- %</p></div></div>
-        <div class="col"><div class="card text-bg-secondary p-3"><h6>🌱 Suelo</h6><p class="sensor-value" id="val-soil">-- %</p></div></div>
-        <div class="col"><div class="card text-bg-secondary p-3"><h6>☀️ Luz</h6><p class="sensor-value" id="val-light">-- lux</p></div></div>
-        <div class="col"><div class="card text-bg-secondary p-3"><h6>🍃 Viento</h6><p class="sensor-value" id="val-wind">-- km/h</p></div></div>
-        <div class="col"><div class="card text-bg-secondary p-3"><h6>🌧 Lluvia</h6><p class="sensor-value" id="val-rain">-- mm</p></div></div>
-      </div>
-      <p id="last-update" class="text-center">Última actualización: --:--:--</p>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+      <span class="navbar-brand text-white">📱 Estación Meteorológica</span>
+      <ul class="nav nav-pills flex-wrap bg-dark p-2 rounded ms-auto" id="sensorTabs">
+        <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#resumen">Resumen</a></li>
+        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#temp">🌡 Temperatura</a></li>
+        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#hum">💧 Humedad</a></li>
+        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#soil">🌱 Suelo</a></li>
+        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#light">☀ Luz</a></li>
+        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#wind">🍃 Viento</a></li>
+        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#rain">🌧 Lluvia</a></li>
+      </ul>
     </div>
-    <div class="tab-pane fade" id="temp"><h4>🌡 Temperatura</h4><canvas id="chart-temp"></canvas></div>
-    <div class="tab-pane fade" id="hum"><h4>💧 Humedad</h4><canvas id="chart-hum"></canvas></div>
-    <div class="tab-pane fade" id="soil"><h4>🌱 Suelo</h4><canvas id="chart-soil"></canvas></div>
-    <div class="tab-pane fade" id="light"><h4>☀️ Luz</h4><canvas id="chart-light"></canvas></div>
-    <div class="tab-pane fade" id="wind"><h4>🍃 Viento</h4><canvas id="chart-wind"></canvas></div>
-    <div class="tab-pane fade" id="rain"><h4>🌧 Lluvia</h4><canvas id="chart-rain"></canvas></div>
-    <div class="tab-pane fade" id="estado"><h4>🔌 Estado ESP32</h4><p id="estado-esp32">⏳ Verificando conexión...</p></div>
-    <div class="tab-pane fade" id="historial">
-      <h4>📁 Historial (Datos cada 20 minutos)</h4>
-      <select id="fechaSelect" class="form-select mb-3" onchange="cargarHistorialPorFecha()">
-        <option>Cargando fechas disponibles...</option>
-      </select>
-      <div class="table-responsive">
-        <table class="table table-dark table-sm text-center">
-          <thead>
-            <tr>
-              <th>Hora</th>
-              <th>Temp (°C)</th>
-              <th>Humedad (%)</th>
-              <th>Suelo (%)</th>
-              <th>Luz (lux)</th>
-              <th>Viento (km/h)</th>
-              <th>Dir</th>
-              <th>Lluvia (mm)</th>
-              <th>Estado</th>
-            </tr>
-          </thead>
-          <tbody id="tablaHistorial">
-            <tr><td colspan="9">Seleccione una fecha</td></tr>
-          </tbody>
-        </table>
+  </nav>
+
+  <div class="container py-4">
+    <div class="alert alert-warning text-center d-none" id="demo-alert">🧪 Estás viendo datos de demostración porque el ESP32 está desconectado.</div>
+
+    <div class="tab-content">
+      <div class="tab-pane fade show active" id="resumen">
+        <h3 class="mb-3">Resumen de Sensores</h3>
+        <div id="resumenContent" class="row g-3">
+          <div class="col-md-4"><div class="card text-bg-secondary p-3"><h5>🌡 Temperatura</h5><p id="res-temp">-- °C</p></div></div>
+          <div class="col-md-4"><div class="card text-bg-secondary p-3"><h5>💧 Humedad</h5><p id="res-hum">-- %</p></div></div>
+          <div class="col-md-4"><div class="card text-bg-secondary p-3"><h5>🌱 Suelo</h5><p id="res-soil">-- %</p></div></div>
+          <div class="col-md-6"><div class="card text-bg-secondary p-3"><h5>☀ Luz</h5><p id="res-light">-- lux</p></div></div>
+          <div class="col-md-6">
+            <div class="card text-bg-secondary p-3 text-center">
+              <h5>🍃 Viento</h5>
+              <p id="res-wind">-- km/h</p>
+              <p id="res-wind-dir" class="text-light">Dirección: --</p>
+              <div style="width: 80px; height: 80px; margin: 0 auto;">
+                <svg width="80" height="80" viewBox="0 0 100 100">
+                  <circle cx="50" cy="50" r="48" stroke="#ccc" stroke-width="2" fill="none" />
+                  <text x="50" y="15" text-anchor="middle" fill="#ccc" font-size="10">N</text>
+                  <text x="95" y="55" text-anchor="middle" fill="#ccc" font-size="10">E</text>
+                  <text x="50" y="95" text-anchor="middle" fill="#ccc" font-size="10">S</text>
+                  <text x="5" y="55" text-anchor="middle" fill="#ccc" font-size="10">O</text>
+                  <polygon id="wind-arrow" points="50,20 45,50 55,50" fill="#00c851" transform="rotate(0,50,50)" />
+                </svg>
+              </div>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="card text-bg-secondary p-3">
+              <h5>🌧 Lluvia</h5>
+              <p id="res-rain">-- mm</p>
+              <p>Intensidad: <span id="res-rain-status" class="text-light">--</span></p>
+              <p id="res-rain-total">Total hoy: -- mm</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-pane fade" id="temp">
+        <h3 class="text-center">🌡 Aquí irá la gráfica de temperatura</h3>
+        <canvas id="tempChart" height="120"></canvas>
+      </div>
+
+      <div class="tab-pane fade" id="hum">
+        <h3 class="text-center">💧 Gráfico de Humedad</h3>
+        <canvas id="humChart" height="120"></canvas>
+      </div>
+
+      <div class="tab-pane fade" id="soil">
+        <h3 class="text-center">🌱 Humedad del Suelo</h3>
+        <canvas id="soilChart" height="120"></canvas>
+      </div>
+
+      <div class="tab-pane fade" id="light">
+        <h3 class="text-center">☀ Gráfico de Luz</h3>
+        <canvas id="lightChart" height="120"></canvas>
+      </div>
+
+      <div class="tab-pane fade" id="wind">
+        <h3 class="text-center">🍃 Velocidad del Viento</h3>
+        <canvas id="windChart" height="120"></canvas>
+      </div>
+
+      <div class="tab-pane fade" id="rain">
+        <h3 class="text-center">🌧 Historial de Lluvia</h3>
+        <canvas id="rainChart" height="120"></canvas>
       </div>
     </div>
   </div>
-</div>
 
-<script>
-let charts = {};
-const sensors = ["temp", "hum", "soil", "light", "wind", "rain"];
-const colors = { temp: "#ff6384", hum: "#36a2eb", soil: "#4bc0c0", light: "#f0ad4e", wind: "#9966ff", rain: "#00c851" };
-const units = { temp: "°C", hum: "%", soil: "%", light: "lux", wind: "km/h", rain: "mm" };
-const yRanges = { temp: [8, 28], hum: [0, 100], soil: [0, 100], light: [0, 1000], wind: [0, 100], rain: [0, 10] };
-
-// Inicializar gráficos
-sensors.forEach(s => {
-  const ctx = document.getElementById("chart-" + s).getContext("2d");
-  charts[s] = new Chart(ctx, {
-    type: "line",
-    data: { labels: [], datasets: [{ label: s.toUpperCase(), data: [], borderColor: colors[s], backgroundColor: colors[s] + "33", fill: true, tension: 0.4 }] },
-    options: {
-      scales: {
-        y: { min: yRanges[s][0], max: yRanges[s][1], ticks: { color: "#ccc" } },
-        x: { ticks: { color: "#ccc" } }
-      },
-      plugins: { legend: { labels: { color: "#fff" } } }
-    }
-  });
-});
-
-function updateChart(sensor, value) {
-  const t = new Date().toLocaleTimeString();
-  const c = charts[sensor];
-  c.data.labels.push(t);
-  c.data.datasets[0].data.push(value);
-  if (c.data.labels.length > 12) {
-    c.data.labels.shift();
-    c.data.datasets[0].data.shift();
-  }
-  c.update();
-}
-
-async function fetchData() {
-  try {
-    const d = await fetch("datos.php?nocache=" + Date.now()).then(r => r.json());
-    const data = {
-      temp: parseFloat(d.temperatura),
-      hum: parseFloat(d.humedad),
-      soil: parseFloat(d.suelo),
-      light: parseFloat(d.luz),
-      wind: parseFloat(d.viento_velocidad),
-      rain: parseFloat(d.lluvia_mm)
-    };
-    
-    sensors.forEach(s => {
-      document.getElementById("val-" + s).textContent = data[s].toFixed(1) + " " + units[s];
-      updateChart(s, data[s]);
-    });
-    
-    document.getElementById("estado-esp32").textContent = "✅ ESP32 conectado y enviando datos";
-    document.getElementById("last-update").textContent = "Última actualización: " + new Date().toLocaleTimeString();
-  } catch (e) {
-    console.error("Error fetching data:", e);
-    document.getElementById("estado-esp32").textContent = "❌ Sin conexión con ESP32";
-  }
-}
-
-async function cargarHistorialPorFecha() {
-  const fechaSeleccionada = document.getElementById("fechaSelect").value;
-  if (!fechaSeleccionada) return;
-  
-  try {
-    const response = await fetch(`get_data.php?fecha=${fechaSeleccionada}`);
-    if (!response.ok) throw new Error("Error en la respuesta del servidor");
-    
-    const datos = await response.json();
-    const tabla = document.getElementById("tablaHistorial");
-    
-    if (datos.length === 0) {
-      tabla.innerHTML = `<tr><td colspan="9">No hay datos para la fecha seleccionada</td></tr>`;
-      return;
-    }
-    
-    let html = '';
-    datos.forEach(d => {
-      html += `
-        <tr>
-          <td>${d.hora || '--:--'}</td>
-          <td>${d.temperatura ? parseFloat(d.temperatura).toFixed(1) : '--'}</td>
-          <td>${d.humedad ? parseFloat(d.humedad).toFixed(1) : '--'}</td>
-          <td>${d.suelo ? parseFloat(d.suelo).toFixed(1) : '--'}</td>
-          <td>${d.luz ? parseFloat(d.luz).toFixed(1) : '--'}</td>
-          <td>${d.viento_velocidad ? parseFloat(d.viento_velocidad).toFixed(1) : '--'}</td>
-          <td>${d.viento_direccion || '--'}</td>
-          <td>${d.lluvia ? parseFloat(d.lluvia).toFixed(2) : '0.00'}</td>
-          <td>${d.estado_lluvia || '--'}</td>
-        </tr>`;
-    });
-    
-    tabla.innerHTML = html;
-  } catch (error) {
-    console.error("Error al cargar historial:", error);
-    document.getElementById("tablaHistorial").innerHTML = 
-      `<tr><td colspan="9">Error al cargar datos. Intente nuevamente.</td></tr>`;
-  }
-}
-
-async function cargarFechasDisponibles() {
-  try {
-    const response = await fetch("get_last_date.php?listAll=1");
-    const fechas = await response.json();
-    const select = document.getElementById("fechaSelect");
-    
-    select.innerHTML = '';
-    if (fechas.length === 0) {
-      select.innerHTML = '<option value="">No hay fechas disponibles</option>';
-      return;
-    }
-    
-    fechas.forEach(fecha => {
-      const option = document.createElement('option');
-      option.value = fecha;
-      option.textContent = fecha;
-      select.appendChild(option);
-    });
-    
-    // Cargar automáticamente la primera fecha disponible
-    if (fechas.length > 0) {
-      select.value = fechas[0];
-      cargarHistorialPorFecha();
-    }
-  } catch (error) {
-    console.error("Error al cargar fechas:", error);
-    document.getElementById("fechaSelect").innerHTML = 
-      '<option value="">Error al cargar fechas</option>';
-  }
-}
-
-// Inicialización
-document.addEventListener('DOMContentLoaded', () => {
-  fetchData();
-  cargarFechasDisponibles();
-  
-  // Actualizar datos en tiempo real cada 5 segundos
-  setInterval(fetchData, 5000);
-  
-  // Actualizar historial cada hora (opcional)
-  setInterval(() => {
-    if (document.getElementById('historial').classList.contains('active')) {
-      cargarHistorialPorFecha();
-    }
-  }, 3600000);
-});
-</script>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="script.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
