@@ -101,8 +101,95 @@ function iniciarGraficos() {
   charts.rain = crearGrafico("rainChart", "Lluvia", "mm");
 }
 
+async function cargarHistorial(fecha) {
+  try {
+    const res = await fetch(`get_data.php?fecha=${fecha}`);
+    const datos = await res.json();
+    
+    if (!datos || datos.length === 0) {
+      document.getElementById('tablaHistorial').innerHTML = `
+        <tr>
+          <td colspan="9" class="text-center">No hay datos para esta fecha</td>
+        </tr>
+      `;
+      return;
+    }
+
+    const filas = datos.map(dato => `
+      <tr>
+        <td>${dato.hora}</td>
+        <td>${dato.temperatura}°C</td>
+        <td>${dato.humedad}%</td>
+        <td>${dato.suelo}%</td>
+        <td>${dato.luz} lux</td>
+        <td>${dato.viento_velocidad} km/h</td>
+        <td>${dato.viento_direccion}</td>
+        <td>${dato.lluvia} mm</td>
+        <td>${dato.estado_lluvia}</td>
+      </tr>
+    `).join('');
+
+    document.getElementById('tablaHistorial').innerHTML = filas;
+  } catch (error) {
+    console.error("Error al cargar historial:", error);
+    document.getElementById('tablaHistorial').innerHTML = `
+      <tr>
+        <td colspan="9" class="text-center text-danger">Error al cargar los datos</td>
+      </tr>
+    `;
+  }
+}
+
+async function cargarFechasDisponibles() {
+  try {
+    const res = await fetch('get_last_date.php?listAll=1');
+    const fechas = await res.json();
+    
+    const select = document.getElementById('fechasDisponibles');
+    select.innerHTML = '<option value="">Fechas con datos...</option>';
+    
+    fechas.forEach(fecha => {
+      const option = document.createElement('option');
+      option.value = fecha;
+      // Formatear la fecha para mostrarla más amigable
+      const fechaObj = new Date(fecha);
+      const opciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      option.textContent = fechaObj.toLocaleDateString('es-ES', opciones);
+      select.appendChild(option);
+    });
+  } catch (error) {
+    console.error("Error al cargar fechas disponibles:", error);
+  }
+}
+
 window.onload = () => {
   iniciarGraficos();
   obtenerDatos();
   setInterval(obtenerDatos, 5000);
+
+  // Cargar fechas disponibles
+  cargarFechasDisponibles();
+
+  // Configurar fecha actual en el selector
+  const fechaHoy = new Date().toISOString().split('T')[0];
+  document.getElementById('fechaHistorial').value = fechaHoy;
+
+  // Evento para el selector de fechas disponibles
+  document.getElementById('fechasDisponibles').addEventListener('change', (e) => {
+    if (e.target.value) {
+      document.getElementById('fechaHistorial').value = e.target.value;
+      cargarHistorial(e.target.value);
+    }
+  });
+
+  // Evento para el date picker
+  document.getElementById('fechaHistorial').addEventListener('change', (e) => {
+    cargarHistorial(e.target.value);
+  });
+
+  // Ya no necesitamos el botón, la carga es automática
+  document.getElementById('cargarHistorial').style.display = 'none';
+
+  // Cargar datos del día actual
+  cargarHistorial(fechaHoy);
 };

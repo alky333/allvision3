@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>All Vision by suckers</title>
 
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="assets/css/bootstrap.min.css" rel="stylesheet">
+  <script src="assets/js/chart.js"></script>
   <style>
     .lluvia-ligera { color: #5bc0de; }
     .lluvia-moderada { color: #f0ad4e; }
@@ -25,6 +25,7 @@
         <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#light">☀ Luz</a></li>
         <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#wind">🍃 Viento</a></li>
         <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#rain">🌧 Lluvia</a></li>
+        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#historial">📊 Historial</a></li>
       </ul>
     </div>
   </nav>
@@ -97,6 +98,43 @@
         <h3 class="text-center">🌧 Historial de Lluvia</h3>
         <canvas id="rainChart" height="120"></canvas>
       </div>
+
+      <div class="tab-pane fade" id="historial">
+        <div class="row">
+          <div class="col-md-12 mb-3">
+            <h3 class="text-center">📊 Historial de Datos</h3>
+            <div class="d-flex justify-content-center align-items-center gap-3 mb-4">
+              <select id="fechasDisponibles" class="form-select" style="max-width: 200px;">
+                <option value="">Fechas con datos...</option>
+              </select>
+              <input type="date" id="fechaHistorial" class="form-control" style="max-width: 200px;">
+              <button id="cargarHistorial" class="btn btn-primary">Cargar Datos</button>
+            </div>
+          </div>
+          <div class="col-md-12">
+            <div class="table-responsive">
+              <table class="table table-dark table-striped table-hover">
+                <thead>
+                  <tr>
+                    <th>Hora</th>
+                    <th>Temperatura</th>
+                    <th>Humedad</th>
+                    <th>Suelo</th>
+                    <th>Luz</th>
+                    <th>Viento</th>
+                    <th>Dirección</th>
+                    <th>Lluvia</th>
+                    <th>Estado</th>
+                  </tr>
+                </thead>
+                <tbody id="tablaHistorial">
+                  <!-- Los datos se cargarán aquí dinámicamente -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
   <footer class="fixed-bottom text-center text-white-50 py-1" style="background-color: rgba(0, 0, 0, 0.1); font-size: 0.9rem;">
@@ -105,6 +143,6 @@
   
 
   <script src="script.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
